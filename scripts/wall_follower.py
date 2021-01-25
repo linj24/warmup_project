@@ -5,11 +5,16 @@ import rospy
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
 
+# Proportional coefficient for linear velocity
 KP_LIN = 0.5
+# Proportional coefficient for angular velocity
 KP_ANG = 0.01
-TURN_VEL = 200
-DIST_TO_ANG = 90
+# Angular velocity for turning corners
+TURN_VEL = 180
+# Distance from wall to be maintained
 THRESHOLD = 0.7
+# Conversion from distance to angle
+DIST_TO_ANG = 90
 
 class WallLoop(object):
     def __init__(self):
@@ -23,16 +28,22 @@ class WallLoop(object):
         closest_distance = np.amin(data.ranges)
         closest_angle = np.argmin(data.ranges)
         self.bot_vel.linear.x = KP_LIN * max(closest_distance, THRESHOLD)
+        
+        # if closest wall is in front
         if (closest_angle < 30 or closest_angle > 330):
             self.bot_vel.linear.x = 0
+            # if previous wall is on the right
             if self.wall_side == 1:
                 self.bot_vel.angular.z = KP_ANG * TURN_VEL
+            # if previous wall is on the left
             else:
-                self.bot_vel.angular.z = KP_ANG * TURN_VEL
+                self.bot_vel.angular.z = KP_ANG * -TURN_VEL
+        # if closest wall is to the left
         elif (closest_angle < 180):
             self.bot_vel.angular.z = KP_ANG * (closest_angle - 90 - 
                                                (DIST_TO_ANG * (THRESHOLD - closest_distance)))
             self.wall_side = -1
+        # if closest wall is to the right
         else:
             self.bot_vel.angular.z = KP_ANG * (closest_angle - 270 +
                                                (DIST_TO_ANG * (THRESHOLD - closest_distance)))
