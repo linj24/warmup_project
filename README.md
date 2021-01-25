@@ -19,12 +19,14 @@ The `turn_left` command sets the angular velocity of the robot; I don't have a c
 
 I time my commands by using a counter named `ticks`, which breaks up the length of a single loop into 100 units. I'm using `rospy.Rate(5)`, so 100 ticks corresponds to 20 seconds, which is the length of my loop.
 Right now, I have the robot set to:
+```
 - Stop at tick 0
 - Accelerate from tick 10 to tick 35
 - Decelerate from tick 36 to tick 60
 - Stop at tick 0
 - Begin turning left at tick 75
 - Stop at tick 100 (start of loop)
+```
 
 ### Demonstration
 ![Square Driving Gif](gifs/drive_square.gif)
@@ -34,6 +36,7 @@ Right now, I have the robot set to:
 ### Approach
 The goal here is to get the robot within some distance of a wall, turn it so that its x-axis is parallel with it, move until it detects another wall, then switch the robot's focus to the second wall. I imagine that switching the robot's focus to the second wall can be done by keeping track of which side the original wall was on and rotating away from it. I envision this working using the following algorithm.
 
+```
 - Move forward (scale velocity with minimum scan value)
 - If the robot's minimum scan value is X (+- some error)
 - If the minimum scan angle is in front of the robot
@@ -43,6 +46,7 @@ The goal here is to get the robot within some distance of a wall, turn it so tha
 - Else if the minimum scan angle is to the right of the robot
 --- Rotate in the direction that minimizes the 270-degree scan value while approaching a fixed distance from the wall
 - Loop the above
+```
 
 ### Code Structure
 Once again, my code is in a class, but there is only one function since nothing is time-dependent and nothing needs to be looped. That function, `check_distance`, is the callback function for the scan topic. It makes use of five constants: the proportional coefficients for linear/angular velocity, the angular velocity for turning corners, the distance from the wall to be maintained, and a conversion from distance to angle to steer the robot toward that distance.
@@ -59,8 +63,10 @@ The other two branches give the robot an angular velocity to course-correct it t
 ### Approach
 The goal here is for the robot to move in the direction of the closest object. This makes the algorithm I intend to use fairly simple.
 
+```
 - Rotate toward the minimum scan value
 - Move forward at a velocity proportional to the distance from the object
+```
 
 The use of proportional control will allow me to smoothly lower the bot's velocity as it approaches a safe distance from the wall, avoiding a crash.
 
